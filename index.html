@@ -1,0 +1,84 @@
+<html>
+<title>TiVo Data</title>
+<head>
+    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="js/data.js"></script>
+    <script type="text/javascript" src="js/loader.js"></script>
+    <script type="text/javascript" src="js/loadImg.js"></script>
+    <link href="css/style.css" rel="stylesheet"/>
+    <script type="text/javascript">
+        google.charts.load('current', {
+            callback: drawTable,
+            packages: ['corechart', 'table']
+        });
+        google.charts.setOnLoadCallback(drawTable);
+
+        function drawTable() {
+            var vals = generate();  // Given data
+            // Construct table
+            var data = new google.visualization.DataTable();
+            data.addColumn('date', 'Date');
+            data.addColumn('string', 'Name');
+            data.addColumn('number', 'Length');
+            data.addColumn('number', 'Tango');
+            data.addColumn('number', 'India');
+            data.addColumn('number', 'Victor');
+            data.addColumn('number', 'Oscar');
+            data.addColumn('boolean', 'Active');
+            for(i = 0; i < vals.length; i++)
+                data.addRows([
+                    [vals[i].date,
+                        vals[i].name,
+                        vals[i].length,
+                        parseFloat(vals[i].data.tango),  // T
+                        parseFloat(vals[i].data.india),  // I
+                        parseFloat(vals[i].data.victor), // V
+                        parseFloat(vals[i].data.oscar),  // O
+                        vals[i].active]
+                ]);
+
+            data.sort({column: 1, desc: false});    // Group by name
+            var table = new google.visualization.Table(document.getElementById('table_div'));
+            table.draw(data, {showRowNumber: true, width: '100%', height: '50%'});
+
+            // Construct chart
+            var values = new google.visualization.DataTable();
+            values.addColumn('string', 'Name');
+            values.addColumn('number', 'Length');
+
+            // Group data by names and cumulative lengths
+            var dict = {};
+            for(var j = 0; j < vals.length; j++) {
+                var name = vals[j].name;
+                if(name in dict)
+                    dict[name] += vals[j].length;
+                else
+                    dict[name] = vals[j].length;
+            }
+
+            for(var key in dict)
+                values.addRows([[key, dict[key]]]);
+
+            values.sort({column: 1, desc: false});    // Sort by length
+
+            var view = new google.visualization.DataView(values);
+            var options = {
+                title: "Cumulative Lengths of Users",
+                width: 500,
+                height: 400,
+                bar: {groupWidth: "95%"},
+                legend: { position: "none" }
+            };
+            var chart = new google.visualization.ColumnChart(document.getElementById("chart_div"));
+            chart.draw(view, options);
+        }
+    </script>
+</head>
+<body>
+<div class="se-pre-con"></div>  <!-- Loader gif -->
+<h1>DATA</h1>
+<div id="table_div"></div>
+<h1>CHART</h1>
+<div id="chart_div" class="center"></div>
+</body>
+</html>
